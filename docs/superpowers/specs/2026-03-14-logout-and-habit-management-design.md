@@ -36,9 +36,11 @@ Renders a circular avatar button showing the user's email initial. Clicking togg
 
 On logout: calls `supabase.auth.signOut()` from the browser client, then uses `useRouter().push('/login')` to redirect.
 
-Placed in the header of `app/page.tsx`, replacing nothing — the header currently has `<h1>` and `<AddHabitForm>`. `UserMenu` is added as a third element.
+Placed in the header of `app/page.tsx`. The current header is `flex items-center justify-between` with `<h1>` on the left and `<AddHabitForm>` on the right. `UserMenu` is added to the right side, to the left of `<AddHabitForm>`, so the right side becomes a flex row: `[UserMenu] [AddHabitForm]`.
 
 `app/page.tsx` passes `user.email` as a prop to `UserMenu`.
+
+**Dropdown close behavior:** The dropdown closes on (a) clicking outside the component, (b) pressing Escape, and (c) after logout completes (redirect handles this). Implement outside-click detection with a `useEffect` listening to `mousedown` on `document`, or use a Radix UI `Popover` component if available.
 
 ---
 
@@ -63,7 +65,7 @@ Extracted from `HabitRow`'s first `<td>`. Owns the name cell state machine:
 2. User clicks "Yes, delete" → calls `deleteHabit(habit.id)` → row disappears
 3. User clicks "Cancel" → state → `idle`
 
-Both actions use `useTransition` for pending state. Errors shown via `toast.error`.
+Both actions use `useTransition` for pending state. Errors shown via `toast.error` from `sonner` (same library used throughout the app).
 
 ---
 
@@ -73,7 +75,19 @@ Both actions use `useTransition` for pending state. Errors shown via `toast.erro
 - Render `<HabitName>` in the first `<td>` instead of the current name + trash button
 - Pass `habit`, `isPending`, and `startTransition` — or let `HabitName` own its own transition
 
-Preferred: `HabitName` owns its own `useTransition` so `HabitRow` stays focused on checkbox logic.
+**`HabitName` owns its own `useTransition`** — separate from `HabitRow`'s transition. This is an intentional design decision: checkboxes in the row are not disabled while a rename or delete is in-flight. The two operations (toggling logs vs. managing the habit itself) are independent and do not need to block each other.
+
+**`HabitName` props:**
+```ts
+type Props = {
+  habit: { id: string; name: string }
+}
+```
+Actions (`updateHabit`, `deleteHabit`) are imported directly from `@/app/actions`, not passed as props.
+
+**Pending UI:** While a transition is in-flight, the edit input and action buttons are disabled. No spinner is shown — the disabled state is sufficient feedback.
+
+**Blur on empty name:** If the user clears the input and clicks away (or presses Enter), the name reverts visually to the original value. No server call is made.
 
 ---
 
@@ -85,10 +99,15 @@ Preferred: `HabitName` owns its own `useTransition` so `HabitRow` stays focused 
 export async function updateHabit(habitId: string, name: string): Promise<void>
 ```
 
+- Calls `supabase.auth.getUser()` and throws `'Not authenticated'` if no user (matching the existing `createHabit` pattern)
 - Validates `name.trim()` is non-empty (throws if empty)
 - Updates `habits.name` where `id = habitId`
 - RLS ensures user can only update their own habits
 - Calls `revalidatePath('/')`
+
+### `deleteHabit` (unchanged)
+
+No server-side change. Delete confirmation is UI-only (two-step in `HabitName`). This is intentional — the action is only called after the user explicitly confirms in the UI.
 
 ---
 
