@@ -56,3 +56,20 @@ export async function toggleHabitLog(
 
   revalidatePath('/')
 }
+
+export async function updateHabit(habitId: string, name: string): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
+  const trimmed = name.trim()
+  if (!trimmed) throw new Error('Habit name cannot be empty')
+
+  const { error } = await supabase
+    .from('habits')
+    .update({ name: trimmed })
+    .eq('id', habitId)
+
+  if (error) throw new Error(error.message)
+  revalidatePath('/')
+}
