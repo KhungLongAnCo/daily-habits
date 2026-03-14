@@ -16,6 +16,7 @@ export function HabitName({ habit }: Props) {
   const [inputValue, setInputValue] = useState(habit.name)
   const [isPending, startTransition] = useTransition()
   const inputRef = useRef<HTMLInputElement>(null)
+  const cancelledRef = useRef(false)
 
   // Focus input when entering editing state
   useEffect(() => {
@@ -30,6 +31,7 @@ export function HabitName({ habit }: Props) {
     if (state === 'idle') return
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
+        cancelledRef.current = true
         setInputValue(habit.name)
         setState('idle')
       }
@@ -38,12 +40,21 @@ export function HabitName({ habit }: Props) {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [state, habit.name])
 
+  // Sync inputValue when habit.name prop changes
+  useEffect(() => {
+    setInputValue(habit.name)
+  }, [habit.name])
+
   function handleEditClick() {
     setInputValue(habit.name)
     setState('editing')
   }
 
   function handleSave() {
+    if (cancelledRef.current) {
+      cancelledRef.current = false
+      return
+    }
     const trimmed = inputValue.trim()
     if (!trimmed || trimmed === habit.name) {
       setInputValue(habit.name)
@@ -77,7 +88,7 @@ export function HabitName({ habit }: Props) {
     startTransition(async () => {
       try {
         await deleteHabit(habit.id)
-        // Row will disappear via revalidatePath
+        setState('idle')
       } catch {
         toast.error('Failed to delete habit. Please try again.')
         setState('confirming-delete')
