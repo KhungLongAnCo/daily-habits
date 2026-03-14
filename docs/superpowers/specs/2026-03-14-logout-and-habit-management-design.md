@@ -1,0 +1,128 @@
+# Logout & Habit Management Design
+
+**Date:** 2026-03-14
+**Status:** Approved
+**Scope:** Add logout, inline habit rename, and delete confirmation to the daily habits tracker.
+
+---
+
+## Goals
+
+- Let users log out from within the app
+- Allow renaming a habit without deleting and recreating it
+- Prevent accidental habit deletion with a two-step confirmation
+
+---
+
+## Architecture
+
+No database schema changes required. The `habits.name` column already exists and supports updates.
+
+Three units of new work:
+
+1. **`UserMenu` component** — logout UI
+2. **`HabitName` component** — inline edit + delete confirmation
+3. **`updateHabit` server action** — persists habit renames
+
+---
+
+## Components
+
+### `components/UserMenu.tsx` (new, Client Component)
+
+Renders a circular avatar button showing the user's email initial. Clicking toggles a dropdown with:
+- User's full email (read-only)
+- "Log out" button
+
+On logout: calls `supabase.auth.signOut()` from the browser client, then uses `useRouter().push('/login')` to redirect.
+
+Placed in the header of `app/page.tsx`, replacing nothing — the header currently has `<h1>` and `<AddHabitForm>`. `UserMenu` is added as a third element.
+
+`app/page.tsx` passes `user.email` as a prop to `UserMenu`.
+
+---
+
+### `components/HabitName.tsx` (new, Client Component)
+
+Extracted from `HabitRow`'s first `<td>`. Owns the name cell state machine:
+
+| State | UI |
+|---|---|
+| `idle` | Name text + edit (✏) and delete (🗑) icons on hover |
+| `editing` | `<input>` pre-filled with current name. Enter/blur saves, Escape cancels |
+| `confirming-delete` | "Delete [name]?" text in red + "Yes, delete" and "Cancel" buttons |
+
+**Edit flow:**
+1. User clicks ✏ icon → state → `editing`
+2. User types new name → presses Enter or clicks away → calls `updateHabit(habit.id, newName)` → state → `idle`
+3. Escape key → state → `idle` (no save)
+4. If name is empty or unchanged → no server call, state → `idle`
+
+**Delete flow:**
+1. User clicks 🗑 icon → state → `confirming-delete`
+2. User clicks "Yes, delete" → calls `deleteHabit(habit.id)` → row disappears
+3. User clicks "Cancel" → state → `idle`
+
+Both actions use `useTransition` for pending state. Errors shown via `toast.error`.
+
+---
+
+### `HabitRow.tsx` (modified)
+
+- Remove inline delete button and `handleDelete` function
+- Render `<HabitName>` in the first `<td>` instead of the current name + trash button
+- Pass `habit`, `isPending`, and `startTransition` — or let `HabitName` own its own transition
+
+Preferred: `HabitName` owns its own `useTransition` so `HabitRow` stays focused on checkbox logic.
+
+---
+
+## Server Actions
+
+### `updateHabit` (new, in `app/actions.ts`)
+
+```ts
+export async function updateHabit(habitId: string, name: string): Promise<void>
+```
+
+- Validates `name.trim()` is non-empty (throws if empty)
+- Updates `habits.name` where `id = habitId`
+- RLS ensures user can only update their own habits
+- Calls `revalidatePath('/')`
+
+---
+
+## File Map
+
+| File | Change |
+|---|---|
+| `app/actions.ts` | Add `updateHabit` |
+| `app/page.tsx` | Pass `user.email` to `UserMenu`; add `UserMenu` to header |
+| `components/UserMenu.tsx` | New — avatar dropdown with logout |
+| `components/HabitName.tsx` | New — inline edit + delete confirmation |
+| `components/HabitRow.tsx` | Remove delete logic; render `HabitName` |
+
+---
+
+## Error Handling
+
+- Edit: if `updateHabit` throws, show `toast.error`, revert input to original name, return to `idle`
+- Delete: if `deleteHabit` throws, show `toast.error`, return to `confirming-delete` so user can retry
+- Logout: if `signOut` throws, show `toast.error`, stay on page
+
+---
+
+## Testing
+
+- `HabitName` state transitions (idle → editing → idle, idle → confirming → deleted) tested with React Testing Library
+- `updateHabit` server action tested manually (no Next.js runtime available in unit tests)
+- `UserMenu` logout flow tested manually via browser
+
+---
+
+## Out of Scope
+
+- Email-based avatar (initials only)
+- Reordering habits
+- Bulk delete
+- Password/account management
