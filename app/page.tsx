@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { HabitGrid } from '@/components/HabitGrid'
 import { AddHabitForm } from '@/components/AddHabitForm'
+import { UserMenu } from '@/components/UserMenu'
 import { formatDateISO, getDaysInMonth } from '@/lib/utils/dates'
 
 export default async function Home() {
@@ -33,7 +34,10 @@ export default async function Home() {
     <main className="max-w-5xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold">Daily Habits</h1>
-        <AddHabitForm />
+        <div className="flex items-center gap-2">
+          <UserMenu email={user.email ?? undefined} />
+          <AddHabitForm />
+        </div>
       </div>
       <HabitGrid
         habits={habits ?? []}
