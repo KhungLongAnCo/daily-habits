@@ -36,7 +36,7 @@ Renders a circular avatar button showing the user's email initial. Clicking togg
 
 On logout: calls `supabase.auth.signOut()` from the browser client, then uses `useRouter().push('/login')` to redirect.
 
-Placed in the header of `app/page.tsx`. The current header is `flex items-center justify-between` with `<h1>` on the left and `<AddHabitForm>` on the right. `UserMenu` is added to the right side, to the left of `<AddHabitForm>`, so the right side becomes a flex row: `[UserMenu] [AddHabitForm]`.
+Placed in the header of `app/page.tsx`. The current header is `flex items-center justify-between` with `<h1>` on the left and `<AddHabitForm>` on the right. `UserMenu` is added to the right side, to the left of `<AddHabitForm>`. Since the current header has no wrapper on the right side, wrap both in `<div className="flex items-center gap-2">`: `[UserMenu] [AddHabitForm]`.
 
 `app/page.tsx` passes `user.email` as a prop to `UserMenu`. Prop type: `email: string | undefined`. If email is undefined, the avatar shows "?" and the dropdown shows "Unknown user" instead of the email.
 
@@ -58,14 +58,15 @@ Extracted from `HabitRow`'s first `<td>`. Owns the name cell state machine:
 
 **Edit flow:**
 1. User clicks ✏ icon → state → `editing`
-2. User types new name → presses Enter or clicks away → calls `updateHabit(habit.id, newName)` → state → `idle`
-3. Escape key → state → `idle` (no save)
-4. If name is empty or unchanged → no server call, state → `idle`
+2. User presses Enter or clicks away:
+   - If `name.trim()` is empty or unchanged from original → no server call, revert display to original, state → `idle`
+   - Otherwise → calls `updateHabit(habit.id, newName.trim())` → state → `idle` (rename is **pessimistic**: the displayed name stays as the old value until `revalidatePath` causes a server re-render with the new name)
+3. Escape key → state → `idle` (no save, display reverts to original)
 
 **Delete flow:**
-1. User clicks 🗑 icon → state → `confirming-delete`
-2. User clicks "Yes, delete" → calls `deleteHabit(habit.id)` → row disappears
-3. User clicks "Cancel" → state → `idle`
+1. User clicks 🗑 icon → state → `confirming-delete` (confirmation UI always visible regardless of hover state; hover-based icon visibility is overridden)
+2. User clicks "Yes, delete" → calls `deleteHabit(habit.id)` → row disappears immediately (optimistic)
+3. User clicks "Cancel" or presses Escape → state → `idle`
 
 Both actions use `useTransition` for pending state. Errors shown via `toast.error` from `sonner` (same library used throughout the app).
 
@@ -110,7 +111,7 @@ export async function updateHabit(habitId: string, name: string): Promise<void>
 
 ### `deleteHabit` (unchanged)
 
-No server-side change. Delete confirmation is UI-only (two-step in `HabitName`). This is intentional — the action is only called after the user explicitly confirms in the UI. Since `revalidatePath('/')` in `deleteHabit` is only called before any `throw`, a failed delete does not trigger revalidation — the component can safely return to `confirming-delete` state.
+No server-side change. Delete confirmation is UI-only (two-step in `HabitName`). This is intentional — the action is only called after the user explicitly confirms in the UI. In the existing `deleteHabit` action, `revalidatePath('/')` is called only on the success path (after `.delete()` succeeds, before returning). Error paths throw before reaching `revalidatePath`, so a failed delete does not trigger revalidation — the component can safely return to `confirming-delete` state. `deleteHabit` intentionally omits an explicit `supabase.auth.getUser()` check (unlike `createHabit`/`updateHabit`) and relies on RLS instead. Do not add an auth check to this action.
 
 ---
 
