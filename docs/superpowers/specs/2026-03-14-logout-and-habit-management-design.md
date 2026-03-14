@@ -38,9 +38,11 @@ On logout: calls `supabase.auth.signOut()` from the browser client, then uses `u
 
 Placed in the header of `app/page.tsx`. The current header is `flex items-center justify-between` with `<h1>` on the left and `<AddHabitForm>` on the right. `UserMenu` is added to the right side, to the left of `<AddHabitForm>`, so the right side becomes a flex row: `[UserMenu] [AddHabitForm]`.
 
-`app/page.tsx` passes `user.email` as a prop to `UserMenu`.
+`app/page.tsx` passes `user.email` as a prop to `UserMenu`. Prop type: `email: string | undefined`. If email is undefined, the avatar shows "?" and the dropdown shows "Unknown user" instead of the email.
 
 **Dropdown close behavior:** The dropdown closes on (a) clicking outside the component, (b) pressing Escape, and (c) after logout completes (redirect handles this). Implement outside-click detection with a `useEffect` listening to `mousedown` on `document`, or use a Radix UI `Popover` component if available.
+
+**Dropdown z-index:** Apply `z-50` to the dropdown container to ensure it renders above the habit table.
 
 ---
 
@@ -75,7 +77,7 @@ Both actions use `useTransition` for pending state. Errors shown via `toast.erro
 - Render `<HabitName>` in the first `<td>` instead of the current name + trash button
 - Pass `habit`, `isPending`, and `startTransition` — or let `HabitName` own its own transition
 
-**`HabitName` owns its own `useTransition`** — separate from `HabitRow`'s transition. This is an intentional design decision: checkboxes in the row are not disabled while a rename or delete is in-flight. The two operations (toggling logs vs. managing the habit itself) are independent and do not need to block each other.
+**`HabitName` owns its own `useTransition`** — separate from `HabitRow`'s transition. The existing checkbox-disabling behavior (`disabled={isFuture || isPending}` in `HabitRow`) is unchanged — checkboxes are still disabled while a log toggle is in-flight. However, `HabitName`'s pending state does not propagate to the checkboxes. This is intentional: rename and delete operations are independent from log toggling.
 
 **`HabitName` props:**
 ```ts
@@ -87,7 +89,7 @@ Actions (`updateHabit`, `deleteHabit`) are imported directly from `@/app/actions
 
 **Pending UI:** While a transition is in-flight, the edit input and action buttons are disabled. No spinner is shown — the disabled state is sufficient feedback.
 
-**Blur on empty name:** If the user clears the input and clicks away (or presses Enter), the name reverts visually to the original value. No server call is made.
+**Blur on empty or whitespace-only name:** If the user clears the input (or leaves only whitespace) and clicks away or presses Enter, the name reverts visually to the original value. No server call is made. Whitespace-only input is treated the same as empty (`name.trim() === ''` check applies on both client and server).
 
 ---
 
@@ -102,12 +104,13 @@ export async function updateHabit(habitId: string, name: string): Promise<void>
 - Calls `supabase.auth.getUser()` and throws `'Not authenticated'` if no user (matching the existing `createHabit` pattern)
 - Validates `name.trim()` is non-empty (throws if empty)
 - Updates `habits.name` where `id = habitId`
+- If the Supabase `.update()` call returns an error, throws `new Error(error.message)` (matching existing action pattern)
 - RLS ensures user can only update their own habits
 - Calls `revalidatePath('/')`
 
 ### `deleteHabit` (unchanged)
 
-No server-side change. Delete confirmation is UI-only (two-step in `HabitName`). This is intentional — the action is only called after the user explicitly confirms in the UI.
+No server-side change. Delete confirmation is UI-only (two-step in `HabitName`). This is intentional — the action is only called after the user explicitly confirms in the UI. Since `revalidatePath('/')` in `deleteHabit` is only called before any `throw`, a failed delete does not trigger revalidation — the component can safely return to `confirming-delete` state.
 
 ---
 
@@ -141,7 +144,8 @@ No server-side change. Delete confirmation is UI-only (two-step in `HabitName`).
 
 ## Out of Scope
 
-- Email-based avatar (initials only)
+- Photo/gravatar-based avatar (email-initial avatar is in scope; photo is not)
+- Keyboard accessibility for hover-revealed icons (icons are mouse/touch only in this iteration)
 - Reordering habits
 - Bulk delete
 - Password/account management
