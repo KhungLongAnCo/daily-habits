@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Trash2 } from 'lucide-react'
-import { toggleHabitLog, deleteHabit } from '@/app/actions'
+import { toggleHabitLog } from '@/app/actions'
+import { HabitName } from './HabitName'
 import { CompletionRate } from './CompletionRate'
 import { isFutureDate, isToday, formatDateISO } from '@/lib/utils/dates'
 import { toast } from 'sonner'
@@ -42,29 +42,10 @@ export function HabitRow({ habit, checkedDates, days, year, month }: Props) {
     })
   }
 
-  function handleDelete() {
-    startTransition(async () => {
-      try {
-        await deleteHabit(habit.id)
-      } catch {
-        toast.error('Failed to delete habit. Please try again.')
-      }
-    })
-  }
-
   return (
-    <tr className="border-t border-border/40 hover:bg-muted/30 group">
-      <td className="py-2 pr-4 font-medium">
-        <div className="flex items-center gap-2">
-          <span className="truncate max-w-[120px]">{habit.name}</span>
-          <button
-            onClick={handleDelete}
-            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-opacity"
-            aria-label={`Delete ${habit.name}`}
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+    <tr className="border-t border-border/40 hover:bg-muted/30">
+      <td className="py-2 pr-4">
+        <HabitName habit={habit} />
       </td>
       {days.map((day) => {
         const date = formatDateISO(year, month, day)
