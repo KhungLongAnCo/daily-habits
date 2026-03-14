@@ -82,6 +82,11 @@ create policy "Users can manage own habit logs"
     habit_id in (
       select id from habits where user_id = auth.uid()
     )
+  )
+  with check (
+    habit_id in (
+      select id from habits where user_id = auth.uid()
+    )
   );
 ```
 
@@ -109,13 +114,14 @@ Single page, table layout:
 
 ## Components
 
-| Component         | Type             | Responsibility                                              |
-|-------------------|------------------|-------------------------------------------------------------|
-| `HabitGrid`       | Server Component | Fetches habits + logs for current month, renders the table  |
-| `HabitRow`        | Client Component | One row per habit; checkboxes call Server Action on click   |
-| `AddHabitForm`    | Client Component | Shadcn Dialog with text input to create a new habit         |
-| `CompletionRate`  | Server Component | Displays `checked days / days elapsed this month`           |
-| `LoginPage`       | Server Component | Email input; triggers Supabase magic link                   |
+| Component         | Type             | Responsibility                                                                                      |
+|-------------------|------------------|-----------------------------------------------------------------------------------------------------|
+| `HabitGrid`       | Server Component | Fetches habits + logs for current month, renders the table                                          |
+| `HabitRow`        | Client Component | One row per habit; checkboxes call Server Action on click; tracks optimistic state                  |
+| `AddHabitForm`    | Client Component | Shadcn Dialog with text input to create a new habit                                                 |
+| `CompletionRate`  | Client Component | Derived from `HabitRow` optimistic state; displays `checked days / days elapsed this month`         |
+| `LoginPage`       | Server Component | Renders the page shell; contains `LoginForm` (Client Component) for email input and form submission |
+| `LoginForm`       | Client Component | Email input; calls `supabase.auth.signInWithOtp({ email })` from browser Supabase client            |
 
 ---
 
@@ -126,13 +132,17 @@ Single page, table layout:
 
 createHabit(name: string): Promise<void>
 // INSERT into habits (user_id from session)
+// Calls revalidatePath('/')
 
 deleteHabit(habitId: string): Promise<void>
 // DELETE from habits WHERE id = habitId (cascades to habit_logs)
+// Calls revalidatePath('/')
 
 toggleHabitLog(habitId: string, date: string): Promise<void>
+// date must be ISO format: YYYY-MM-DD (e.g., "2026-03-14")
 // If log exists for (habitId, date) → DELETE
 // Else → INSERT
+// Each action calls revalidatePath('/') to invalidate the page cache
 ```
 
 ---
@@ -152,13 +162,21 @@ No client-side data fetching, no `useEffect`, no loading spinners for initial re
 ## Auth Flow
 
 ```
-/login → user enters email
+/login → user enters email in LoginForm (Client Component)
+       → LoginForm calls supabase.auth.signInWithOtp({ email })
        → Supabase sends magic link email
-       → user clicks link → session created → redirect to /
+       → user clicks link → browser lands on /auth/callback?code=...
+       → route.ts calls supabase.auth.exchangeCodeForSession(code)
+       → session stored in cookie → redirect to /
+
 middleware.ts → checks session on every request
              → unauthenticated → redirect to /login
              → authenticated → allow through
 ```
+
+**Supabase dashboard configuration required:**
+- Add `http://localhost:3000/auth/callback` to the Redirect URLs list
+- Add your production URL (e.g., `https://your-app.vercel.app/auth/callback`) before deploying
 
 ---
 
@@ -215,7 +233,8 @@ daily-habits/
 │   ├── HabitGrid.tsx
 │   ├── HabitRow.tsx
 │   ├── AddHabitForm.tsx
-│   └── CompletionRate.tsx
+│   ├── CompletionRate.tsx
+│   └── LoginForm.tsx
 ├── lib/
 │   └── supabase/
 │       ├── client.ts         # Browser Supabase client
