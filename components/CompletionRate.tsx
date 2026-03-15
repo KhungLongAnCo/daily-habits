@@ -12,12 +12,14 @@ export function CompletionRate({ checkedDates, year, month }: Props) {
 
   return (
     <span
-      className={`text-xs font-medium tabular-nums ${
+      className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold tabular-nums ${
         rate >= 80
-          ? 'text-green-600'
+          ? 'bg-emerald-100 text-emerald-700'
           : rate >= 50
-          ? 'text-yellow-600'
-          : 'text-muted-foreground'
+          ? 'bg-amber-100 text-amber-700'
+          : rate > 0
+          ? 'bg-violet-100 text-violet-600'
+          : 'bg-muted text-muted-foreground'
       }`}
     >
       {rate}%

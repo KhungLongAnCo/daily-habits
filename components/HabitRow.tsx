@@ -14,9 +14,10 @@ type Props = {
   days: number[]
   year: number
   month: number
+  isEven: boolean
 }
 
-export function HabitRow({ habit, checkedDates, days, year, month }: Props) {
+export function HabitRow({ habit, checkedDates, days, year, month, isEven }: Props) {
   const [optimisticDates, setOptimisticDates] = useState<string[]>(checkedDates)
   const [isPending, startTransition] = useTransition()
 
@@ -43,8 +44,8 @@ export function HabitRow({ habit, checkedDates, days, year, month }: Props) {
   }
 
   return (
-    <tr className="border-t border-border/40 hover:bg-muted/30">
-      <td className="py-2 pr-4">
+    <tr className={`border-t border-border/30 transition-colors hover:bg-violet-50/40 ${isEven ? 'bg-white/40' : 'bg-white/10'}`}>
+      <td className="py-2.5 px-4">
         <HabitName habit={habit} />
       </td>
       {days.map((day) => {
@@ -54,21 +55,39 @@ export function HabitRow({ habit, checkedDates, days, year, month }: Props) {
         const today = isToday(date)
 
         return (
-          <td key={day} className="text-center">
-            <input
-              type="checkbox"
-              checked={isChecked}
+          <td
+            key={day}
+            className={`text-center py-2 ${today ? 'bg-primary/5' : ''}`}
+          >
+            <button
+              onClick={() => handleToggle(day)}
               disabled={isFuture || isPending}
-              onChange={() => handleToggle(day)}
-              className={`w-4 h-4 rounded cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-40 ${
-                today ? 'ring-2 ring-primary ring-offset-1' : ''
-              }`}
               aria-label={`${habit.name} on day ${day}`}
-            />
+              aria-pressed={isChecked}
+              className={`
+                w-5 h-5 rounded-full border-2 transition-all duration-150 mx-auto flex items-center justify-center
+                ${isChecked
+                  ? 'bg-primary border-primary shadow-sm shadow-primary/30'
+                  : today
+                  ? 'border-primary/50 hover:border-primary hover:bg-primary/10'
+                  : isFuture
+                  ? 'border-border/30 cursor-not-allowed opacity-30'
+                  : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/5 cursor-pointer'
+                }
+                ${today && !isFuture ? 'ring-2 ring-primary/20 ring-offset-1' : ''}
+                ${isPending ? 'opacity-60' : ''}
+              `}
+            >
+              {isChecked && (
+                <svg viewBox="0 0 10 10" className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1.5 5L3.8 7.5L8.5 2.5" />
+                </svg>
+              )}
+            </button>
           </td>
         )
       })}
-      <td className="pl-4 text-right">
+      <td className="pl-4 pr-4 text-right">
         <CompletionRate checkedDates={optimisticDates} year={year} month={month} />
       </td>
     </tr>
