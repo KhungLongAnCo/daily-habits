@@ -9,7 +9,7 @@ export function formatDateISO(year: number, month: number, day: number): string 
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
 
-function todayISO(): string {
+export function todayISO(): string {
   const now = new Date()
   return formatDateISO(now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate())
 }

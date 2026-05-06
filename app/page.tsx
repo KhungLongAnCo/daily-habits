@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { HabitGrid } from '@/components/HabitGrid'
 import { AddHabitForm } from '@/components/AddHabitForm'
 import { formatDateISO, getDaysInMonth } from '@/lib/utils/dates'
+import Link from 'next/link'
 
 export default async function Home() {
   const supabase = await createClient()
@@ -46,7 +47,13 @@ export default async function Home() {
             </h1>
             <p className="text-muted-foreground mt-2 text-lg">Synchronizing daily behavioral patterns.</p>
           </div>
-          <div className="shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
+            <Link 
+              href="/todo"
+              className="flex items-center justify-center h-12 px-5 rounded-xl bg-secondary/10 text-secondary hover:bg-secondary/20 border border-secondary/20 transition-all font-bold tracking-wide"
+            >
+              Today's View
+            </Link>
             <AddHabitForm />
           </div>
         </header>
