@@ -18,7 +18,7 @@ export default async function Home() {
   const startOfMonth = formatDateISO(year, month, 1)
   const endOfMonth = formatDateISO(year, month, getDaysInMonth(year, month))
 
-  const [{ data: habits }, { data: logs }] = await Promise.all([
+  const [{ data: habits }, { data: logs }, { data: todosData }] = await Promise.all([
     supabase
       .from('habits')
       .select('id, name')
@@ -28,6 +28,12 @@ export default async function Home() {
       .select('habit_id, date')
       .gte('date', startOfMonth)
       .lte('date', endOfMonth),
+    supabase
+      .from('todos')
+      .select('id, name, due_date, due_time, completed')
+      .gte('due_date', startOfMonth)
+      .lte('due_date', endOfMonth)
+      .order('due_time', { ascending: true, nullsFirst: false }),
   ])
 
   return (
@@ -62,6 +68,7 @@ export default async function Home() {
           <HabitGrid
             habits={habits ?? []}
             logs={logs ?? []}
+            todos={todosData ?? []}
             year={year}
             month={month}
           />
