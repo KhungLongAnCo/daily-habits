@@ -56,7 +56,7 @@ export default async function Home() {
           <div className="flex items-center gap-3 shrink-0">
             <Link 
               href="/todo"
-              className="flex items-center justify-center h-12 px-5 rounded-xl bg-secondary/10 text-secondary hover:bg-secondary/20 border border-secondary/20 transition-all font-bold tracking-wide"
+              className="flex z-50 items-center justify-center h-12 px-5 rounded-xl bg-secondary/10 text-secondary hover:bg-secondary/20 border border-secondary/20 transition-all font-bold tracking-wide"
             >
               Today's View
             </Link>
