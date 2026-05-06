@@ -38,12 +38,14 @@ export function AddHabitForm() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="sm">
-          <Plus size={16} className="mr-1" />
-          Add Habit
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button size="sm">
+            <Plus size={16} className="mr-1" />
+            Add Habit
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>New Habit</DialogTitle>
