@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DailyTodoItem } from '@/components/DailyTodoItem'
+import { AddTodoForm } from '@/components/AddTodoForm'
+import { TodoItem, type Todo } from '@/components/TodoItem'
 import { todayISO } from '@/lib/utils/dates'
 import Link from 'next/link'
 
@@ -12,7 +14,7 @@ export default async function TodoPage() {
 
   const today = todayISO()
 
-  const [{ data: habits }, { data: logs }] = await Promise.all([
+  const [{ data: habits }, { data: logs }, { data: todosData }] = await Promise.all([
     supabase
       .from('habits')
       .select('id, name')
@@ -21,10 +23,16 @@ export default async function TodoPage() {
       .from('habit_logs')
       .select('habit_id')
       .eq('date', today),
+    supabase
+      .from('todos')
+      .select('*')
+      .eq('due_date', today)
+      .order('due_time', { ascending: true, nullsFirst: false }),
   ])
 
   const safeHabits = habits ?? []
   const safeLogs = logs ?? []
+  const safeTodos = (todosData ?? []) as Todo[]
   const completedHabitIds = new Set(safeLogs.map((l) => l.habit_id))
 
   // Sort habits so unchecked are at top
@@ -77,42 +85,76 @@ export default async function TodoPage() {
           </div>
         </header>
 
-        <div className="space-y-4">
-          {sortedHabits.length === 0 ? (
-            <div className="glass rounded-3xl p-10 text-center flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 border border-white/10">
-                <svg className="w-8 h-8 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-white mb-2">No protocols initialized</h2>
-              <p className="text-muted-foreground mb-6">Switch to the main dashboard to establish your habits.</p>
-              <Link 
-                href="/"
-                className="px-6 py-3 rounded-xl bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/30 transition-all font-semibold"
-              >
-                Go to Dashboard
-              </Link>
+        <div className="space-y-12">
+          {/* Habits Section */}
+          <div>
+            <h2 className="text-xl font-heading font-bold text-white mb-4 px-2 border-b border-white/10 pb-2">
+              Habit Protocols
+            </h2>
+            <div className="space-y-4">
+              {sortedHabits.length === 0 ? (
+                <div className="glass rounded-3xl p-8 text-center flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3 border border-white/10">
+                    <svg className="w-6 h-6 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-bold text-white mb-1">No protocols</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Establish habits in dashboard.</p>
+                  <Link 
+                    href="/"
+                    className="px-4 py-2 rounded-xl bg-primary/20 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/30 transition-all font-semibold text-sm"
+                  >
+                    Go to Dashboard
+                  </Link>
+                </div>
+              ) : (
+                sortedHabits.map((habit, idx) => (
+                  <div 
+                    key={habit.id} 
+                    className="animate-in fade-in slide-in-from-bottom-4"
+                    style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
+                  >
+                    <DailyTodoItem 
+                      habit={habit} 
+                      initialChecked={completedHabitIds.has(habit.id)} 
+                      date={today} 
+                    />
+                  </div>
+                ))
+              )}
             </div>
-          ) : (
-            sortedHabits.map((habit, idx) => (
-              <div 
-                key={habit.id} 
-                className="animate-in fade-in slide-in-from-bottom-4"
-                style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
-              >
-                <DailyTodoItem 
-                  habit={habit} 
-                  initialChecked={completedHabitIds.has(habit.id)} 
-                  date={today} 
-                />
-              </div>
-            ))
-          )}
+          </div>
+
+          {/* Todos Section */}
+          <div>
+            <div className="flex items-center justify-between mb-4 px-2 border-b border-white/10 pb-2">
+              <h2 className="text-xl font-heading font-bold text-white">
+                One-Time Tasks
+              </h2>
+              <AddTodoForm />
+            </div>
+            <div className="space-y-3">
+              {safeTodos.length === 0 ? (
+                <div className="glass rounded-2xl p-6 text-center">
+                  <p className="text-muted-foreground text-sm">No tasks assigned for today.</p>
+                </div>
+              ) : (
+                safeTodos.map((todo, idx) => (
+                  <div 
+                    key={todo.id}
+                    className="animate-in fade-in slide-in-from-bottom-4"
+                    style={{ animationDelay: `${idx * 100}ms`, animationFillMode: 'both' }}
+                  >
+                    <TodoItem todo={todo} />
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
         
-        {sortedHabits.length > 0 && (
-          <div className="mt-12 text-center">
+        <div className="mt-16 text-center">
             <Link 
               href="/"
               className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-white transition-colors group"
@@ -124,7 +166,6 @@ export default async function TodoPage() {
               Return to Full Dashboard
             </Link>
           </div>
-        )}
       </main>
     </div>
   )
