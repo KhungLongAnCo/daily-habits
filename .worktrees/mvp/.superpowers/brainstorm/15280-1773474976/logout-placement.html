@@ -1,0 +1,68 @@
+<h2>Where should the logout button live?</h2>
+<p class="subtitle">The current header only has "Daily Habits" title and "Add Habit" button</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">App header</div>
+        <div class="mockup-body" style="padding:12px">
+          <div class="mock-nav" style="display:flex;justify-content:space-between;align-items:center;background:#f1f5f9;padding:10px 16px;border-radius:6px">
+            <span style="font-weight:600">Daily Habits</span>
+            <div style="display:flex;gap:8px">
+              <span style="background:#e2e8f0;padding:4px 10px;border-radius:4px;font-size:12px">+ Add Habit</span>
+              <span style="background:#fee2e2;color:#dc2626;padding:4px 10px;border-radius:4px;font-size:12px">Logout</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — In the header</h3>
+      <p>Logout sits next to "Add Habit" in the top bar. Always visible.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">App header</div>
+        <div class="mockup-body" style="padding:12px">
+          <div class="mock-nav" style="display:flex;justify-content:space-between;align-items:center;background:#f1f5f9;padding:10px 16px;border-radius:6px">
+            <span style="font-weight:600">Daily Habits</span>
+            <div style="display:flex;gap:8px;align-items:center">
+              <span style="background:#e2e8f0;padding:4px 10px;border-radius:4px;font-size:12px">+ Add Habit</span>
+              <div style="width:28px;height:28px;background:#cbd5e1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer">U</div>
+            </div>
+          </div>
+          <div style="margin-top:8px;background:white;border:1px solid #e2e8f0;border-radius:6px;padding:8px;font-size:12px;color:#374151">
+            <div style="padding:4px 8px;cursor:pointer">you@email.com</div>
+            <div style="padding:4px 8px;color:#dc2626;cursor:pointer">Logout</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — User avatar dropdown</h3>
+      <p>Click a user icon to reveal email + logout. Cleaner header.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Bottom of page</div>
+        <div class="mockup-body" style="padding:12px">
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;font-size:12px">
+            <span style="color:#64748b">Signed in as you@email.com</span>
+            <span style="color:#dc2626;cursor:pointer">Logout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Footer bar</h3>
+      <p>A subtle bar at the bottom showing email + logout. Out of the way.</p>
+    </div>
+  </div>
+</div>

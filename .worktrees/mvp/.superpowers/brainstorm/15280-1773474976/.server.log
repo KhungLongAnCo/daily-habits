@@ -1,0 +1,5 @@
+{"type":"server-started","port":55426,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:55426","screen_dir":"/Users/luanluan/Workspace/daily-habits/.worktrees/mvp/.superpowers/brainstorm/15280-1773474976"}
+{"type":"screen-added","file":"/Users/luanluan/Workspace/daily-habits/.worktrees/mvp/.superpowers/brainstorm/15280-1773474976/logout-placement.html"}
+{"type":"screen-added","file":"/Users/luanluan/Workspace/daily-habits/.worktrees/mvp/.superpowers/brainstorm/15280-1773474976/edit-habit-flow.html"}
+{"type":"screen-added","file":"/Users/luanluan/Workspace/daily-habits/.worktrees/mvp/.superpowers/brainstorm/15280-1773474976/waiting-1.html"}
+{"type":"server-stopped","reason":"idle timeout"}

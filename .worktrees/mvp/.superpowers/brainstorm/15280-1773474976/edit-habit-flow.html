@@ -1,0 +1,75 @@
+<h2>How should editing a habit name work?</h2>
+<p class="subtitle">Currently, habit names show with a delete icon on hover — no edit option exists</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Inline edit — click to edit</div>
+        <div class="mockup-body" style="padding:12px">
+          <table style="width:100%;font-size:12px;border-collapse:collapse">
+            <tr style="background:#f8fafc">
+              <td style="padding:8px 4px;color:#64748b">Habit</td>
+              <td style="padding:8px 2px;text-align:center;color:#64748b">1</td>
+              <td style="padding:8px 2px;text-align:center;color:#64748b">2</td>
+              <td style="padding:8px 2px;text-align:center;color:#64748b">3</td>
+            </tr>
+            <tr style="border-top:1px solid #e2e8f0">
+              <td style="padding:8px 4px">
+                <input style="border:1px solid #6366f1;border-radius:4px;padding:2px 6px;font-size:12px;outline:none;background:#eef2ff" value="Read 30 min" />
+                <span style="color:#6366f1;margin-left:4px;font-size:10px">↵ save</span>
+              </td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" checked /></td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" /></td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" checked /></td>
+            </tr>
+            <tr style="border-top:1px solid #e2e8f0">
+              <td style="padding:8px 4px">Exercise</td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" /></td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" checked /></td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" /></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Click name to edit inline</h3>
+      <p>Click the habit name to turn it into an input field. Press Enter or blur to save. Fast and minimal.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Edit icon → dialog</div>
+        <div class="mockup-body" style="padding:12px">
+          <table style="width:100%;font-size:12px;border-collapse:collapse">
+            <tr style="border-top:1px solid #e2e8f0">
+              <td style="padding:8px 4px">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <span>Read 30 min</span>
+                  <span style="color:#94a3b8;font-size:10px">✏ ✕</span>
+                </div>
+              </td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" checked /></td>
+              <td style="text-align:center;padding:4px"><input type="checkbox" /></td>
+            </tr>
+          </table>
+          <div style="margin-top:10px;border:1px solid #e2e8f0;border-radius:8px;padding:12px;background:white;font-size:12px">
+            <div style="font-weight:600;margin-bottom:8px">Edit Habit</div>
+            <input style="border:1px solid #d1d5db;border-radius:4px;padding:4px 8px;width:100%;font-size:12px" value="Read 30 min" />
+            <div style="display:flex;justify-content:flex-end;gap:6px;margin-top:8px">
+              <span style="background:#f1f5f9;padding:4px 10px;border-radius:4px">Cancel</span>
+              <span style="background:#6366f1;color:white;padding:4px 10px;border-radius:4px">Save</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Edit icon → dialog</h3>
+      <p>Hover shows both edit (✏) and delete (✕) icons. Edit opens a dialog. Same pattern as Add Habit.</p>
+    </div>
+  </div>
+</div>
